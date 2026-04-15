@@ -138,7 +138,7 @@ async def run_agent(ctx: dict) -> dict:
             record_activity(db, ctx["run_id"], "action", {"action": action_name, **action_input})
 
         state.update(mock["state_updates"])
-        sleep_seconds = mock["sleep"] or 300
+        sleep_seconds = mock["sleep"]
 
         reasoning = mock["reasoning"]
         if ctx.get("extra_instructions"):

@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 
 from temporalio import workflow
@@ -15,7 +16,7 @@ class OrderSupervisorWorkflow:
         self.extra_instructions: list[str] = []
         self.status = "active"
         self.agent_state: dict = {}
-        self.sleep_seconds = 300
+        self.sleep_seconds: int | None = None
 
     @workflow.run
     async def run(self, params: dict):
@@ -29,10 +30,15 @@ class OrderSupervisorWorkflow:
 
     async def _main_loop(self, run_id, order_id, config):
         while self.status not in ("completed", "terminated"):
-            has_events = await workflow.wait_condition(
-                lambda: bool(self.pending_events) or self.status in ("completed", "terminated"),
-                timeout=timedelta(seconds=self.sleep_seconds),
-            )
+            timeout = timedelta(seconds=self.sleep_seconds) if self.sleep_seconds and self.sleep_seconds > 0 else None
+            try:
+                await workflow.wait_condition(
+                    lambda: bool(self.pending_events) or self.status in ("completed", "terminated"),
+                    timeout=timeout,
+                )
+                has_events = bool(self.pending_events)
+            except asyncio.TimeoutError:
+                has_events = False
 
             if self.status == "terminated":
                 break
