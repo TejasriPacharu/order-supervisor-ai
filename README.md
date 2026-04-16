@@ -2,20 +2,6 @@
 
 AI-powered long-running order lifecycle supervisor using Temporal workflows.
 
-## Architecture
-
-```
-┌─────────────┐     ┌──────────────┐     ┌──────────────────┐
-│   Next.js    │────▶│   FastAPI    │────▶│    Temporal       │
-│   UI (:3000) │     │   API (:8000)│     │   Server (:7233)  │
-└─────────────┘     └──────┬───────┘     └────────┬─────────┘
-                           │                      │
-                     ┌─────▼─────┐         ┌──────▼───────┐
-                     │  SQLite   │◀────────│   Temporal    │
-                     │  Database │         │   Worker      │
-                     └───────────┘         └──────────────┘
-```
-
 **Flow:**
 
 1. User creates a supervisor config (name, instruction, wake behavior)
@@ -24,13 +10,6 @@ AI-powered long-running order lifecycle supervisor using Temporal workflows.
 4. Agent uses tools (message teams, create notes) → stored as activity records
 5. Agent sets sleep duration → workflow sleeps until next event or timeout
 6. Terminal events or manual termination → agent generates final summary
-
-**Key design decisions:**
-
-- **Temporal for orchestration**: Provides durable execution, signal-based wake-up, and reliable state management out of the box
-- **Single activity log table**: All events, actions, decisions, and summaries in one table for simplicity
-- **Agent state as JSON**: Persistent key-value state that survives across wake cycles
-- **System-owned completion**: Runs end via terminal events, manual termination, or max age — not agent decision
 
 ## Setup
 
